@@ -3,6 +3,8 @@ import yfinance as yf
 import pandas as pd
 import plotly.express as px
 import numpy as np
+import datetime
+import pytz
 
 # --- 1. CONFIG & THEME ---
 st.set_page_config(page_title="Institutional Energy Risk", layout="wide")
@@ -32,7 +34,7 @@ current_bz = df['BZ=F'].iloc[-1]
 
 # --- 3. SIDEBAR: RISK CONTROLS & NEWS ---
 with st.sidebar:
-    st.header("🛡️ Risk Controls")
+    st.header("Risk Controls")
     vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.40)
     risk_appetite = st.select_slider("Risk Tolerance", ["Conservative", "Moderate", "Aggressive"], "Moderate")
     scenario_price = st.slider("Simulate Brent at ($):", 90, 200, 115)
@@ -58,6 +60,28 @@ with st.sidebar:
                 st.divider()
     except Exception:
         st.error("Intel Feed temporarily offline. Check Reuters Energy for live updates.")
+
+# --- MARKET STATUS LOGIC ---
+def get_market_status():
+    # Define Eastern Time
+    et = pytz.timezone('US/Eastern')
+    now = datetime.datetime.now(et)
+    
+    # 0 = Monday, 6 = Sunday
+    is_weekend = now.weekday() >= 5 
+    is_futures_open = now.hour >= 18 or now.hour < 17 # Futures open Sun 6PM - Fri 5PM
+    
+    if is_weekend:
+        if now.weekday() == 6 and now.hour >= 18:
+            return "🟢 LIVE: FUTURES OPEN (Week Ahead)", "blue"
+        return "🔴 CLOSED: WEEKEND STATIC", "red"
+    return "🟢 LIVE: MARKET OPEN", "green"
+
+status_text, status_color = get_market_status()
+
+# --- DISPLAY ---
+st.title("🛡️ Institutional Geopolitical Risk Dashboard")
+st.markdown(f"**Market Status:** :{status_color}[{status_text}]")
 
 # --- 4. TOP ROW: STRATEGIC PULSE ---
 st.title("🛡️ Institutional Geopolitical Risk Dashboard")
