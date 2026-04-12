@@ -70,7 +70,7 @@ m2.metric("War Premium (Spread)", f"${df['Spread'].iloc[-1]:.2f}", "Supply Risk"
 m3.metric("Tail Risk (CVaR 95%)", f"{cvar_val:.2%}", "Expected Loss")
 m4.metric("Gold (GC=F)", f"${df['GC=F'].iloc[-1]:,.2f}", "Safe Haven")
 
-col_l, col_r = st.columns()
+col_l, col_r = st.columns(2)
 with col_l:
     st.plotly_chart(px.line(df, y="Spread", title="The 'War Premium' Trend"), use_container_width=True)
     st.map(pd.DataFrame({'lat': [26.5, 2.5, 29.9], 'lon': [56.3, 101.3, 32.5]}), color='#FF4B4B')
