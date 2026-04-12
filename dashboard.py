@@ -7,47 +7,32 @@ import numpy as np
 # --- 1. DASHBOARD CONFIGURATION ---
 st.set_page_config(page_title="Geopolitical Energy Risk", layout="wide", initial_sidebar_state="expanded")
 
-# --- 2. SIDEBAR: RISK CONTROLS & SCENARIO INPUTS ---
+# --- 1. DATA EXTRACTION (Move this to the top!) ---
+@st.cache_data
+def fetch_data():
+    tickers = ["BZ=F", "CL=F", "GC=F", "ITA"]
+    df = yf.download(tickers, period="1y")['Close']
+    
+    # Calculate Volatility here so 'current_vol' exists for the sidebar
+    returns = df['BZ=F'].pct_change()
+    df['Vol'] = returns.rolling(window=20).std() * np.sqrt(252)
+    return df
+
+df = fetch_data()
+current_vol = df['Vol'].iloc[-1]  # <--- Now this is defined before the sidebar!
+current_bz = df['BZ=F'].iloc[-1]
+
+# --- 2. SIDEBAR: RISK CONTROLS ---
 with st.sidebar:
     st.header("🛡️ Hedge & Risk Controls")
-    
-    # 1. Define input widgets first
     vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.40)
+    risk_appetite = st.select_slider("Risk Tolerance", options=["Conservative", "Moderate", "Aggressive"], value="Moderate")
     
-    # NEW: Define risk_appetite so it can be used in the calculation below
-    risk_appetite = st.select_slider(
-        "Risk Tolerance", 
-        options=["Conservative", "Moderate", "Aggressive"], 
-        value="Moderate"
-    )
-    
-    st.divider()
-    
-    st.subheader("War Escalation Simulator")
-    scenario_price = st.slider("Simulate Brent Crude at ($):", 90, 200, 115)
-    st.caption("EIA projects peaks of $115/b in Q2 2026 if supply shut-ins persist.")
-
-    baseline_hedge = 0.10  # 10% base
-    multipliers = {"Conservative": 1.5, "Moderate": 1.0, "Aggressive": 0.5}    
-    # Calculate ratio and final dynamic percentage
+    # These now have access to 'current_vol' from Step 1
+    baseline_hedge = 0.10
+    multipliers = {"Conservative": 1.5, "Moderate": 1.0, "Aggressive": 0.5}
     vol_ratio = current_vol / vol_threshold 
     dynamic_hedge_pct = min(baseline_hedge * vol_ratio * multipliers[risk_appetite], 0.40)
-    
-# --- 3. ETL: DATA EXTRACTION & TRANSFORMATION ---
-@st.cache_data(ttl=3600)
-def fetch_risk_data():
-    tickers = ["BZ=F", "CL=F", "GC=F", "ITA"] # Brent, WTI, Gold, Defense ETF
-    raw_data = yf.download(tickers, period="1y")['Close']
-    
-    # Transformations
-    raw_data['Spread'] = raw_data['BZ=F'] - raw_data['CL=F'] # 'War Premium'
-    returns = raw_data['BZ=F'].pct_change()
-    raw_data['Vol'] = returns.rolling(window=20).std() * np.sqrt(252)
-    return raw_data
-
-df = fetch_risk_data()
-current_bz = df['BZ=F'].iloc[-1]
-current_vol = df['Vol'].iloc[-1]
 
 # --- 4. TOP ROW: KEY RISK METRICS ---
 st.title("Energy Risk Dashboard: Israel-Iran Conflict")
