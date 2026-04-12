@@ -7,6 +7,15 @@ import numpy as np
 # --- 1. CONFIG & DATA ETL ---
 st.set_page_config(page_title="Institutional Energy Risk", layout="wide")
 
+def display_live_intel(ticker):
+    st.subheader("📰 Real-Time Geopolitical Intelligence")
+    news_items = yf.Ticker(ticker).news[:5] # Get top 5 stories
+    for item in news_items:
+        with st.container():
+            st.markdown(f"**[{item['title']}]({item['link']})**")
+            st.caption(f"Source: {item['publisher']} | Related Tickers: {', '.join(item['relatedTickers'])}")
+            st.divider()
+
 @st.cache_data
 def fetch_comprehensive_data():
     # Tickers: Brent, WTI, Gold, Defense, E&P
@@ -67,6 +76,7 @@ with col_left:
 with col_right:
     # THE RE-INSTATED HEDGE ADVISOR
     st.subheader("🛡️ Dynamic Hedge Advisor")
+    display_live_intel("BZ=F")
     if current_vol > vol_threshold:
         st.error(f"CRITICAL VOLATILITY: {current_vol:.2%}")
         st.markdown(f"**Action:** Shift **{dynamic_hedge_pct:.1%}** of portfolio to **Gold (GLD)** & **Defense (ITA)**.")
