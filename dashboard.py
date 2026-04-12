@@ -12,10 +12,15 @@ with st.sidebar:
     st.header("Hedge & Risk Controls")
     vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.40)
     st.divider()
+    
     st.subheader("War Escalation Simulator")
     scenario_price = st.slider("Simulate Brent Crude at ($):", 90, 200, 115)
     st.caption("EIA projects peaks of $115/b in Q2 2026 if supply shut-ins persist.")
 
+    risk_appetite = st.sidebar.select_slider("Risk Tolerance", options=["Conservative", "Moderate", "Aggressive"], value="Moderate")
+    multipliers = {"Conservative": 1.5, "Moderate": 1.0, "Aggressive": 0.5}
+    dynamic_hedge_pct = min(baseline_hedge * vol_ratio * multipliers[risk_appetite], 0.40)
+    
 # --- 3. ETL: DATA EXTRACTION & TRANSFORMATION ---
 @st.cache_data(ttl=3600)
 def fetch_risk_data():
@@ -52,14 +57,23 @@ with left_col:
         st.write("**April 12, 2026**: Peace talks in Islamabad fail; US threatens Strait of Hormuz blockade.")
         st.write("**April 10, 2026**: Brent falls to $95.20 following a fragile ceasefire announcement.")
 
+# --- Dynamic Hedge Logic ---
+baseline_hedge = 0.10  # 10% base hedge
+# Ratio of how much we are over the threshold
+vol_ratio = current_vol / vol_threshold 
+
+# Dynamic percentage (capped at 30% for safety)
+dynamic_hedge_pct = min(baseline_hedge * vol_ratio, 0.30) 
+
 with right_col:
-    # Automated Hedge Logic
-    st.subheader("🛡️ Hedge Advisor")
+    st.subheader("Dynamic Hedge Advisor")
     if current_vol > vol_threshold:
         st.error(f"CRITICAL VOLATILITY: {current_vol:.2%}")
-        st.markdown("**Action:** Shift 15% to **Gold** & **Defense (ITA)**.")
+        st.markdown(f"**Action:** Shift **{dynamic_hedge_pct:.1%}** of portfolio to **Gold** & **Defense (ITA)**.")
+        st.caption(f"Reasoning: Volatility is {vol_ratio:.1f}x your safety threshold.")
     else:
         st.success(f"STABLE VOLATILITY: {current_vol:.2%}")
+        st.write("Maintain current energy-growth weights.")
         
     st.divider()
     
