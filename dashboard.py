@@ -7,28 +7,36 @@ import numpy as np
 # --- 1. DASHBOARD CONFIGURATION ---
 st.set_page_config(page_title="Geopolitical Energy Risk", layout="wide", initial_sidebar_state="expanded")
 
-# --- 1. DATA EXTRACTION (Move this to the top!) ---
+# --- 2. DATA EXTRACTION ---
 @st.cache_data
 def fetch_data():
     tickers = ["BZ=F", "CL=F", "GC=F", "ITA"]
     df = yf.download(tickers, period="1y")['Close']
     
-    # Calculate Volatility here so 'current_vol' exists for the sidebar
+    # FIX: Create the 'Spread' column that was missing
+    df['Spread'] = df['BZ=F'] - df['CL=F']
+    
+    # Calculate Volatility
     returns = df['BZ=F'].pct_change()
     df['Vol'] = returns.rolling(window=20).std() * np.sqrt(252)
     return df
 
 df = fetch_data()
-current_vol = df['Vol'].iloc[-1]  # <--- Now this is defined before the sidebar!
+current_vol = df['Vol'].iloc[-1]
 current_bz = df['BZ=F'].iloc[-1]
 
-# --- 2. SIDEBAR: RISK CONTROLS ---
+# --- 3. SIDEBAR: RISK CONTROLS ---
 with st.sidebar:
     st.header("🛡️ Hedge & Risk Controls")
     vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.40)
     risk_appetite = st.select_slider("Risk Tolerance", options=["Conservative", "Moderate", "Aggressive"], value="Moderate")
     
-    # These now have access to 'current_vol' from Step 1
+    st.divider()
+    st.subheader("War Escalation Simulator")
+    # FIX: Added scenario_price here so it is defined for the rest of the app
+    scenario_price = st.slider("Simulate Brent Crude at ($):", 90, 200, 115)
+    
+    # Calculations
     baseline_hedge = 0.10
     multipliers = {"Conservative": 1.5, "Moderate": 1.0, "Aggressive": 0.5}
     vol_ratio = current_vol / vol_threshold 
@@ -54,16 +62,8 @@ with left_col:
         st.write("**April 12, 2026**: Peace talks in Islamabad fail; US threatens Strait of Hormuz blockade.")
         st.write("**April 10, 2026**: Brent falls to $95.20 following a fragile ceasefire announcement.")
 
-# --- Dynamic Hedge Logic ---
-baseline_hedge = 0.10  # 10% base hedge
-# Ratio of how much we are over the threshold
-vol_ratio = current_vol / vol_threshold 
-
-# Dynamic percentage (capped at 30% for safety)
-dynamic_hedge_pct = min(baseline_hedge * vol_ratio, 0.30) 
-
 with right_col:
-    st.subheader("Dynamic Hedge Advisor")
+    st.subheader("🛡️ Dynamic Hedge Advisor")
     if current_vol > vol_threshold:
         st.error(f"CRITICAL VOLATILITY: {current_vol:.2%}")
         st.markdown(f"**Action:** Shift **{dynamic_hedge_pct:.1%}** of portfolio to **Gold** & **Defense (ITA)**.")
