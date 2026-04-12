@@ -9,10 +9,10 @@ st.set_page_config(page_title="Geopolitical Energy Risk", layout="wide", initial
 
 # --- 2. SIDEBAR: RISK CONTROLS & SCENARIO INPUTS ---
 with st.sidebar:
-    st.header("🛡️ Hedge & Risk Controls")
+    st.header("Hedge & Risk Controls")
     vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.40)
     st.divider()
-    st.subheader("⚠️ War Escalation Simulator")
+    st.subheader("War Escalation Simulator")
     scenario_price = st.slider("Simulate Brent Crude at ($):", 90, 200, 115)
     st.caption("EIA projects peaks of $115/b in Q2 2026 if supply shut-ins persist.")
 
@@ -33,7 +33,7 @@ current_bz = df['BZ=F'].iloc[-1]
 current_vol = df['Vol'].iloc[-1]
 
 # --- 4. TOP ROW: KEY RISK METRICS ---
-st.title("🛡️ Energy Risk Dashboard: Israel-Iran Conflict")
+st.title("Energy Risk Dashboard: Israel-Iran Conflict")
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Brent Crude", f"${current_bz:.2f}", "-0.75%")
 m2.metric("Brent-WTI Spread", f"${df['Spread'].iloc[-1]:.2f}", "Supply Risk")
