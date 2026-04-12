@@ -76,7 +76,7 @@ with col_l:
     st.plotly_chart(px.line(df, y="Spread", title="The 'War Premium' Trend"), use_container_width=True)
 
 with col_r:
-    st.subheader("🛡️ Dynamic Hedge Advisor")
+    st.subheader("Dynamic Hedge Advisor")
     current_vol = df['Vol'].iloc[-1]
     mults = {"Conservative": 1.5, "Moderate": 1.0, "Aggressive": 0.5}
     vol_ratio = current_vol / vol_threshold
