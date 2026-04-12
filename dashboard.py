@@ -9,16 +9,28 @@ st.set_page_config(page_title="Geopolitical Energy Risk", layout="wide", initial
 
 # --- 2. SIDEBAR: RISK CONTROLS & SCENARIO INPUTS ---
 with st.sidebar:
-    st.header("Hedge & Risk Controls")
+    st.header("🛡️ Hedge & Risk Controls")
+    
+    # 1. Define input widgets first
     vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.40)
+    
+    # NEW: Define risk_appetite so it can be used in the calculation below
+    risk_appetite = st.select_slider(
+        "Risk Tolerance", 
+        options=["Conservative", "Moderate", "Aggressive"], 
+        value="Moderate"
+    )
+    
     st.divider()
     
     st.subheader("War Escalation Simulator")
     scenario_price = st.slider("Simulate Brent Crude at ($):", 90, 200, 115)
     st.caption("EIA projects peaks of $115/b in Q2 2026 if supply shut-ins persist.")
 
-    risk_appetite = st.sidebar.select_slider("Risk Tolerance", options=["Conservative", "Moderate", "Aggressive"], value="Moderate")
-    multipliers = {"Conservative": 1.5, "Moderate": 1.0, "Aggressive": 0.5}
+    baseline_hedge = 0.10  # 10% base
+    multipliers = {"Conservative": 1.5, "Moderate": 1.0, "Aggressive": 0.5}    
+    # Calculate ratio and final dynamic percentage
+    vol_ratio = current_vol / vol_threshold 
     dynamic_hedge_pct = min(baseline_hedge * vol_ratio * multipliers[risk_appetite], 0.40)
     
 # --- 3. ETL: DATA EXTRACTION & TRANSFORMATION ---
