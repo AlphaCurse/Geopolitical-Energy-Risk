@@ -6,3 +6,4 @@ numpy
 streamlit-autorefresh
 datetime
 pytz
+feedparser
