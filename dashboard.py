@@ -26,14 +26,15 @@ df, cvar_val = fetch_comprehensive_data()
 # --- NEW LOGIC: NEWS FUNCTION ---
 def get_live_news(ticker):
     try:
-        news_items = yf.Ticker(ticker).news
+        ticker_obj = yf.Ticker(ticker)
+        news_items = ticker_obj.news
         if not news_items:
-            return [{"headline": "Tactical Alert: Monitoring Strait of Hormuz for supply-chain bottlenecks.", 
-                     "url": "https://reuters.com", "publisher": "Reuters Intel"}]
+            return [{"title": "Tactical Alert: Monitoring supply chains.", "link": "https://finance.yahoo.com", "publisher": "Reuters"}]
         return news_items[:3]
-    except:
+    except Exception as e:
+        st.error(f"News Fetch Error: {e}")
         return []
-
+        
 # --- MARKET STATUS LOGIC ---
 et = pytz.timezone('US/Eastern')
 now = datetime.datetime.now(et)
@@ -50,15 +51,15 @@ with st.sidebar:
     st.divider()
     st.subheader("📰 Real-Time Intel Feed")
     
-    # REPLACED: Updated News Logic Loop
+    # News Logic Loop
     news_list = get_live_news("BZ=F")
-    for item in news_list:
-        h = item.get('headline') or item.get('title')
-        u = item.get('url') or item.get('link')
-        s = item.get('publisher') or "Market Feed"
-        st.markdown(f"**[{h}]({u})**")
-        st.caption(f"Source: {s}")
-        st.divider()
+for item in news_list:
+    h = item.get('title') or item.get('headline') or "Market Update"
+    u = item.get('link') or item.get('url') or "https://finance.yahoo.com"
+    s = item.get('publisher') or "Yahoo Finance"
+    st.markdown(f"**[{h}]({u})**")
+    st.caption(f"Source: {s}")
+    st.divider()
 
 # --- MAIN HEADER ---
 st.title("Institutional Geopolitical Risk Dashboard")
@@ -80,7 +81,7 @@ vol_ratio = current_vol / vol_threshold
 dyn_hedge = min(0.10 * vol_ratio * mults[risk_appetite], 0.40)
 fig_spread = px.line(df, y="Spread", title="The 'War Premium' Trend")
 
-# --- REPLACED: New Main Layout (Three Columns) ---
+# --- New Main Layout ---
 col_graph, col_advisor, col_stats = st.columns([2, 1, 1])
 
 with col_graph:
