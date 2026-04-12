@@ -21,6 +21,21 @@ def fetch_comprehensive_data():
     df['Vol'] = returns.rolling(window=20).std() * np.sqrt(252)
     return df, cvar_95
 
+def get_rss_energy_news():
+    feed_url = "https://reuters.com" 
+    try:
+        feed = feedparser.parse(feed_url)
+        news_items = []
+        for entry in feed.entries[:5]:
+            news_items.append({
+                "title": entry.title,
+                "link": entry.link,
+                "publisher": "Reuters Energy"
+            })
+        return news_items
+    except Exception:
+        return [{"title": "Monitoring Live Energy Feeds...", "link": "#", "publisher": "System"}]
+        
 df, cvar_val = fetch_comprehensive_data()
 
 # --- NEW LOGIC: NEWS FUNCTION ---
@@ -47,26 +62,25 @@ countdown = str(target - now).split('.')[0]
 
 # --- SIDEBAR: REFINED INTEL & CONTROLS ---
 with st.sidebar:
-    st.header("🛡️ Risk Controls")
+    st.header("Risk Controls")
     vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.35)
     risk_appetite = st.select_slider("Risk Tolerance", ["Conservative", "Moderate", "Aggressive"], "Moderate")
     
     st.divider()
     st.subheader("📰 Real-Time Intel Feed")
     
-    # News Logic Loop
-    news_list = get_live_news("CL=F") 
+    # LIVE RSS FEED (Max 5 items)
+    news_list = get_rss_energy_news()
+    
     for item in news_list:
-        h = item.get('title') or item.get('headline')
-        u = item.get('link') or item.get('url')
-        s = item.get('publisher') or "Market Intel Feed"
-        if not h or h == "None":
-            h = "Tactical Alert: Monitoring Global Energy Supply Chains"
-            u = "https://yahoo.com"
+        h = item.get('title')
+        u = item.get('link')
+        s = item.get('publisher')
         
-        st.markdown(f"**[{h}]({u})**")
-        st.caption(f"Source: {s}")
-        st.divider()
+        if h:
+            st.markdown(f"**[{h}]({u})**")
+            st.caption(f"Source: {s}")
+            st.divider()
 
 # --- MAIN HEADER ---
 st.title("Institutional Geopolitical Risk Dashboard")
