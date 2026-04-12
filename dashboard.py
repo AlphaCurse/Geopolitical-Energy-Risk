@@ -29,7 +29,6 @@ def get_live_news(ticker):
         data = yf.Ticker(ticker)
         news_items = data.news
         if not news_items or len(news_items) == 0:
-            # Fallback if Yahoo returns an empty list
             return [{
                 "title": "Tactical Alert: Monitoring supply-chain bottlenecks.",
                 "link": "https://reuters.com",
@@ -56,15 +55,18 @@ with st.sidebar:
     st.subheader("📰 Real-Time Intel Feed")
     
     # News Logic Loop
-    news_list = get_live_news("BZ=F")
+    news_list = get_live_news("CL=F") 
     for item in news_list:
-        h = item.get('title') or item.get('headline') or "Strategic Market Update"
-        u = item.get('link') or item.get('url') or "https://yahoo.com"
-        s = item.get('publisher') or "Live Intel Feed"    
-        if h != "None":
-            st.markdown(f"**[{h}]({u})**")
-            st.caption(f"Source: {s}")
-            st.divider()
+        h = item.get('title') or item.get('headline')
+        u = item.get('link') or item.get('url')
+        s = item.get('publisher') or "Market Intel Feed"
+        if not h or h == "None":
+            h = "Tactical Alert: Monitoring Global Energy Supply Chains"
+            u = "https://yahoo.com"
+        
+        st.markdown(f"**[{h}]({u})**")
+        st.caption(f"Source: {s}")
+        st.divider()
 
 # --- MAIN HEADER ---
 st.title("Institutional Geopolitical Risk Dashboard")
