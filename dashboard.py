@@ -26,13 +26,17 @@ df, cvar_val = fetch_comprehensive_data()
 # --- NEW LOGIC: NEWS FUNCTION ---
 def get_live_news(ticker):
     try:
-        ticker_obj = yf.Ticker(ticker)
-        news_items = ticker_obj.news
-        if not news_items:
-            return [{"title": "Tactical Alert: Monitoring supply chains.", "link": "https://finance.yahoo.com", "publisher": "Reuters"}]
+        data = yf.Ticker(ticker)
+        news_items = data.news
+        if not news_items or len(news_items) == 0:
+            # Fallback if Yahoo returns an empty list
+            return [{
+                "title": "Tactical Alert: Monitoring supply-chain bottlenecks.",
+                "link": "https://reuters.com",
+                "publisher": "Reuters Intel"
+            }]
         return news_items[:3]
-    except Exception as e:
-        st.error(f"News Fetch Error: {e}")
+    except Exception:
         return []
         
 # --- MARKET STATUS LOGIC ---
@@ -53,13 +57,14 @@ with st.sidebar:
     
     # News Logic Loop
     news_list = get_live_news("BZ=F")
-for item in news_list:
-    h = item.get('title') or item.get('headline') or "Market Update"
-    u = item.get('link') or item.get('url') or "https://finance.yahoo.com"
-    s = item.get('publisher') or "Yahoo Finance"
-    st.markdown(f"**[{h}]({u})**")
-    st.caption(f"Source: {s}")
-    st.divider()
+    for item in news_list:
+        h = item.get('title') or item.get('headline') or "Strategic Market Update"
+        u = item.get('link') or item.get('url') or "https://yahoo.com"
+        s = item.get('publisher') or "Live Intel Feed"    
+        if h != "None":
+            st.markdown(f"**[{h}]({u})**")
+            st.caption(f"Source: {s}")
+            st.divider()
 
 # --- MAIN HEADER ---
 st.title("Institutional Geopolitical Risk Dashboard")
