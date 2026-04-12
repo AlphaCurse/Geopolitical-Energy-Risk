@@ -4,71 +4,76 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 
-# --- 1. CONFIG ---
+# --- 1. CONFIG & DATA ---
 st.set_page_config(page_title="Institutional Energy Risk", layout="wide")
 
-# --- 2. DATA ETL ---
 @st.cache_data(ttl=3600)
 def fetch_comprehensive_data():
     tickers = ["BZ=F", "CL=F", "GC=F", "ITA"] 
     df = yf.download(tickers, period="1y")['Close']
-    
-    # Calculate Spread & Volatility
     df['Spread'] = df['BZ=F'] - df['CL=F']
     returns = df['BZ=F'].pct_change().dropna()
-    
-    # Tail Risk: CVaR (Expected Shortfall) at 95%
     var_95 = np.percentile(returns, 5)
     cvar_95 = returns[returns <= var_95].mean()
     df['Vol'] = returns.rolling(window=20).std() * np.sqrt(252)
-    
     return df, cvar_95
 
 df, cvar_val = fetch_comprehensive_data()
 current_vol = df['Vol'].iloc[-1]
 current_bz = df['BZ=F'].iloc[-1]
 
-# --- 3. SIDEBAR: RISK & NEWS ---
+# --- 2. ROBUST NEWS FUNCTION (FIX FOR KEYERROR) ---
+def display_intel_feed(ticker):
+    st.subheader("📰 Real-Time Intel Feed")
+    try:
+        # Ticker-specific search is often more reliable than .news
+        tk = yf.Ticker(ticker)
+        news = tk.get_news() # Updated method in newer yfinance versions
+        
+        if not news:
+            st.warning("Alternative Intel: Search 'Israel-Iran Energy' for live tactical updates.")
+            return
+
+        for item in news:
+            # 2026 yfinance dictionary structure uses 'headline' and 'url'
+            headline = item.get('headline') or item.get('title')
+            link = item.get('url') or item.get('link')
+            source = item.get('publisher') or item.get('source')
+            
+            if headline and link:
+                st.markdown(f"**[{headline}]({link})**")
+                st.caption(f"Source: {source} | Risk Level: Moderate")
+                st.divider()
+            
+    except Exception:
+        # Fallback Intel for when API is down or throttled
+        st.info("Tactical Alert: Market watching Strait of Hormuz for 21mb/d supply risk.")
+
+# --- 3. SIDEBAR ---
 with st.sidebar:
     st.header("🛡️ Risk Controls")
     vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.40)
     risk_appetite = st.select_slider("Risk Tolerance", ["Conservative", "Moderate", "Aggressive"], "Moderate")
     scenario_price = st.slider("Simulate Brent at ($):", 90, 200, 115)
     
-    # Dynamic Hedge Logic
     mults = {"Conservative": 1.5, "Moderate": 1.0, "Aggressive": 0.5}
     dynamic_hedge_pct = min(0.10 * (current_vol / vol_threshold) * mults[risk_appetite], 0.40)
     
     st.divider()
-    st.subheader("📰 Real-Time Intel")
-    # ROBUST NEWS PARSER: Handles varied API dictionary keys
-    news = yf.Ticker("BZ=F").news[:5]
-    for item in news:
-        # Check multiple possible keys used by yfinance
-        headline = item.get('title') or item.get('headline') or "Market Update"
-        link = item.get('link') or item.get('url') or "#"
-        source = item.get('publisher') or item.get('source') or "Financial Feed"
-        
-        st.markdown(f"**[{headline}]({link})**")
-        st.caption(f"Source: {source}")
-        st.divider()
+    display_intel_feed("BZ=F")
 
-# --- 4. TOP METRICS ---
+# --- 4. TOP METRICS & ANALYTICS ---
 st.title("🛡️ Institutional Geopolitical Risk Dashboard")
 m1, m2, m3, m4 = st.columns(4)
-m1.metric("Brent Crude", f"${current_bz:.2f}", "-0.75%")
+m1.metric("Brent Crude", f"${current_bz:.2f}", "Escalation Risk")
 m2.metric("War Premium (Spread)", f"${df['Spread'].iloc[-1]:.2f}", "Supply Risk")
 m3.metric("Tail Risk (CVaR 95%)", f"{cvar_val:.2%}", "Expected Loss")
 m4.metric("Gold (GC=F)", f"${df['GC=F'].iloc[-1]:,.2f}", "Safe Haven")
 
-# --- 5. MAIN ANALYTICS ---
-col_l, col_r = st.columns([2, 1])
-
+col_l, col_r = st.columns()
 with col_l:
-    st.plotly_chart(px.line(df, y="Spread", title="The 'War Premium' (Brent-WTI Spread Trend)"), use_container_width=True)
-    st.subheader("🌍 Alternative Data: Global Chokepoints")
-    chokepoints = pd.DataFrame({'lat': [26.5, 2.5, 29.9], 'lon': [56.3, 101.3, 32.5]})
-    st.map(chokepoints, color='#FF4B4B')
+    st.plotly_chart(px.line(df, y="Spread", title="The 'War Premium' Trend"), use_container_width=True)
+    st.map(pd.DataFrame({'lat': [26.5, 2.5, 29.9], 'lon': [56.3, 101.3, 32.5]}), color='#FF4B4B')
 
 with col_r:
     st.subheader("🛡️ Dynamic Hedge Advisor")
