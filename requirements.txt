@@ -4,3 +4,5 @@ pandas
 plotly
 numpy
 streamlit-autorefresh
+datetime
+pytz
