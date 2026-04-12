@@ -21,6 +21,7 @@ def fetch_comprehensive_data():
     df['Vol'] = returns.rolling(window=20).std() * np.sqrt(252)
     return df, cvar_95
 
+@st.cache_data(ttl=300)
 def get_rss_energy_news():
     feed_url = "https://reuters.com" 
     try:
@@ -34,7 +35,7 @@ def get_rss_energy_news():
             })
         return news_items
     except Exception:
-        return [{"title": "Monitoring Live Energy Feeds...", "link": "#", "publisher": "System"}]
+        return []
         
 df, cvar_val = fetch_comprehensive_data()
 
