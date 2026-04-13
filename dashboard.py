@@ -86,9 +86,7 @@ with st.sidebar:
     for item in news_list:
         content = item.get('content', item)
         title = content.get('title', 'No Title Available')
-        
         link = content.get('clickThroughUrl', content.get('link', '#'))
-        
         source = content.get('provider', {}).get('displayName', 'Yahoo Finance')
         
         st.caption(source.upper())
