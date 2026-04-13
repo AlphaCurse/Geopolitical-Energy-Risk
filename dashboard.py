@@ -8,7 +8,6 @@ import plotly.express as px
 import datetime
 import pytz
 from streamlit_autorefresh import st_autorefresh
-import time
 
 # --- CONFIG & CACHING ---
 st.set_page_config(page_title="Institutional Energy Risk", layout="wide")
@@ -63,14 +62,6 @@ def get_live_news(ticker):
         st.error(f"News Error: {e}")
         return []
 
-def get_time_diff(published_timestamp):
-    diff = int(time.time() - published_timestamp)
-    if diff < 3600:
-        return f"{diff // 60}m ago"
-    elif diff < 86400:
-        return f"{diff // 3600}h ago"
-    return "Today"
-
 # --- MARKET STATUS LOGIC ---
 et = pytz.timezone('US/Eastern')
 now = datetime.datetime.now(et)
@@ -80,21 +71,22 @@ countdown = str(target - now).split('.')[0]
 
 # --- SIDEBAR: REFINED INTEL & CONTROLS ---
 with st.sidebar:
-    st.header("🛡️ Real-Time Intel Feed")
-    news_list = get_live_news("BZ=F")
+    st.header("📰 Real-Time Intel Feed")
+    news_list = get_live_news("BZ=F") 
     
     if not news_list:
         st.info("Scanning for new intelligence...")
     
     for item in news_list:
-        with st.container():
-            source = item.get('publisher', 'Reuters Intel')
-            pub_time = item.get('providerPublishTime', time.time())
-            time_str = get_time_diff(pub_time)
+        content = item.get('content', item)
         
-            st.caption(f"📍 {source.upper()} • {time_str}")
-            st.markdown(f"**[{item['title']}]({item['link']})**")
-            st.divider()
+        title = content.get('title', 'No Title Available')
+        link = content.get('clickThroughUrl', content.get('link', '#'))
+        source = content.get('provider', {}).get('displayName', 'Yahoo Finance')
+        
+        st.caption(f"{source.upper()}")
+        st.markdown(f"**[{title}]({link})**")
+        st.markdown("---")
 
 # --- MAIN HEADER ---
 st.title("Institutional Geopolitical Risk Dashboard")
