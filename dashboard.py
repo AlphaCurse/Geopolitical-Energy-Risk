@@ -84,14 +84,16 @@ with st.sidebar:
         news_list = get_live_news("BZ=F")
     
     for item in news_list:
-        h = item.get('title')
-        u = item.get('link')
-        s = item.get('publisher')
+        content = item.get('content', item)
+        title = content.get('title', 'No Title Available')
         
-        if h:
-            st.markdown(f"**[{h}]({u})**")
-            st.caption(f"Source: {s}")
-            st.divider()
+        link = content.get('clickThroughUrl', content.get('link', '#'))
+        
+        source = content.get('provider', {}).get('displayName', 'Yahoo Finance')
+        
+        st.caption(source.upper())
+        st.markdown(f"**[{title}]({link})**")
+        st.divider()
 
 # --- MAIN HEADER ---
 st.title("Institutional Geopolitical Risk Dashboard")
