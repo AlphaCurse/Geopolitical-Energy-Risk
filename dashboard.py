@@ -8,6 +8,7 @@ import plotly.express as px
 import datetime
 import pytz
 from streamlit_autorefresh import st_autorefresh
+import time
 
 # --- CONFIG & CACHING ---
 st.set_page_config(page_title="Institutional Energy Risk", layout="wide")
@@ -61,7 +62,15 @@ def get_live_news(ticker):
     except Exception as e:
         st.error(f"News Error: {e}")
         return []
-        
+
+def get_time_diff(published_timestamp):
+    diff = int(time.time() - published_timestamp)
+    if diff < 3600:
+        return f"{diff // 60}m ago"
+    elif diff < 86400:
+        return f"{diff // 3600}h ago"
+    return "Today"
+
 # --- MARKET STATUS LOGIC ---
 et = pytz.timezone('US/Eastern')
 now = datetime.datetime.now(et)
@@ -71,26 +80,20 @@ countdown = str(target - now).split('.')[0]
 
 # --- SIDEBAR: REFINED INTEL & CONTROLS ---
 with st.sidebar:
-    st.header("Risk Controls")
-    vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.35)
-    risk_appetite = st.select_slider("Risk Tolerance", ["Conservative", "Moderate", "Aggressive"], "Moderate")
+    st.header("🛡️ Real-Time Intel Feed")
+    news_list = get_live_news("BZ=F")
     
-    st.divider()
-    st.subheader("📰 Real-Time Intel Feed")
-    
-    # LIVE RSS FEED (Max 5 items)
-    news_list = get_rss_energy_news()
     if not news_list:
-        news_list = get_live_news("BZ=F")
+        st.info("Scanning for new intelligence...")
     
     for item in news_list:
-        h = item.get('title')
-        u = item.get('link')
-        s = item.get('publisher')
+        with st.container():
+            source = item.get('publisher', 'Reuters Intel')
+            pub_time = item.get('providerPublishTime', time.time())
+            time_str = get_time_diff(pub_time)
         
-        if h:
-            st.markdown(f"**[{h}]({u})**")
-            st.caption(f"Source: {s}")
+            st.caption(f"📍 {source.upper()} • {time_str}")
+            st.markdown(f"**[{item['title']}]({item['link']})**")
             st.divider()
 
 # --- MAIN HEADER ---
