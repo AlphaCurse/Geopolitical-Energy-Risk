@@ -23,7 +23,7 @@ def fetch_comprehensive_data():
 
 @st.cache_data(ttl=300)
 def get_rss_energy_news():
-    feed_url = "https://reuters.com" 
+    feed_url = "https://cnbc.com"
     try:
         feed = feedparser.parse(feed_url)
         news_items = []
@@ -72,6 +72,8 @@ with st.sidebar:
     
     # LIVE RSS FEED (Max 5 items)
     news_list = get_rss_energy_news()
+    if not news_list:
+        news_list = get_live_news("BZ=F")
     
     for item in news_list:
         h = item.get('title')
