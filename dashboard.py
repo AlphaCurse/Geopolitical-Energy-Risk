@@ -61,7 +61,7 @@ def get_live_news(ticker):
     except Exception as e:
         st.error(f"News Error: {e}")
         return []
-
+        
 # --- MARKET STATUS LOGIC ---
 et = pytz.timezone('US/Eastern')
 now = datetime.datetime.now(et)
@@ -71,22 +71,27 @@ countdown = str(target - now).split('.')[0]
 
 # --- SIDEBAR: REFINED INTEL & CONTROLS ---
 with st.sidebar:
-    st.header("📰 Real-Time Intel Feed")
-    news_list = get_live_news("BZ=F") 
+    st.header("Risk Controls")
+    vol_threshold = st.slider("Volatility Alert Threshold", 0.10, 0.60, 0.35)
+    risk_appetite = st.select_slider("Risk Tolerance", ["Conservative", "Moderate", "Aggressive"], "Moderate")
     
+    st.divider()
+    st.subheader("📰 Real-Time Intel Feed")
+    
+    # LIVE RSS FEED (Max 5 items)
+    news_list = get_rss_energy_news()
     if not news_list:
-        st.info("Scanning for new intelligence...")
+        news_list = get_live_news("BZ=F")
     
     for item in news_list:
-        content = item.get('content', item)
+        h = item.get('title')
+        u = item.get('link')
+        s = item.get('publisher')
         
-        title = content.get('title', 'No Title Available')
-        link = content.get('clickThroughUrl', content.get('link', '#'))
-        source = content.get('provider', {}).get('displayName', 'Yahoo Finance')
-        
-        st.caption(f"{source.upper()}")
-        st.markdown(f"**[{title}]({link})**")
-        st.markdown("---")
+        if h:
+            st.markdown(f"**[{h}]({u})**")
+            st.caption(f"Source: {s}")
+            st.divider()
 
 # --- MAIN HEADER ---
 st.title("Institutional Geopolitical Risk Dashboard")
