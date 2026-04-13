@@ -1,3 +1,5 @@
+import appdirs as ad
+ad.user_cache_dir = lambda *args: "/tmp"
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -39,19 +41,25 @@ def get_rss_energy_news():
         
 df, cvar_val = fetch_comprehensive_data()
 
-# --- NEW LOGIC: NEWS FUNCTION ---
+# --- NEWS LOGIC ---
 def get_live_news(ticker):
     try:
         data = yf.Ticker(ticker)
         news_items = data.news
-        if not news_items or len(news_items) == 0:
-            return [{
-                "title": "Tactical Alert: Monitoring supply-chain bottlenecks.",
-                "link": "https://reuters.com",
-                "publisher": "Reuters Intel"
-            }]
-        return news_items[:3]
-    except Exception:
+        if not news_items:
+            return []
+        
+        refined_news = []
+        for item in news_items[:5]:
+            content = item.get('content', item) 
+            refined_news.append({
+                "title": content.get('title', 'No Title Available'),
+                "link": content.get('clickThroughUrl', content.get('link', '#')),
+                "publisher": content.get('provider', {}).get('displayName', 'Yahoo Finance')
+            })
+        return refined_news
+    except Exception as e:
+        st.error(f"News Error: {e}")
         return []
         
 # --- MARKET STATUS LOGIC ---
