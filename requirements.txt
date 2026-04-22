@@ -1,10 +1,9 @@
 streamlit
 yfinance
-pandas
 plotly
+transformers
+pandas
+vectorbt
 numpy
-streamlit-autorefresh
-datetime
-pytz
-feedparser
-appdirs
+requests
+torch
