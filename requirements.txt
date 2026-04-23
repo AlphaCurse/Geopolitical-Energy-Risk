@@ -1,9 +1,8 @@
+appdirs
 streamlit
+streamlit-autorefresh
 yfinance
-plotly
-transformers
 pandas
-vectorbt
 numpy
-requests
-torch
+plotly
+pytz
