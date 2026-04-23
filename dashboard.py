@@ -1,5 +1,3 @@
-import appdirs as ad
-ad.user_cache_dir = lambda *args: "/tmp"
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -22,22 +20,6 @@ def load_data():
     df['Vol'] = returns.rolling(window=20).std() * np.sqrt(252)
     return df, cvar_95
 
-@st.cache_data(ttl=300)
-def get_news():
-    feed_url = "https://cnbc.com"
-    try:
-        feed = feedparser.parse(feed_url)
-        news_items = []
-        for entry in feed.entries[:5]:
-            news_items.append({
-                "title": entry.title,
-                "link": entry.link,
-                "publisher": "Reuters Energy"
-            })
-        return news_items
-    except Exception:
-        return []
-        
 df, cvar_val = load_data()
 
 def get_live_news(ticker):
@@ -94,7 +76,7 @@ status_text = "CLOSED: WEEKEND STATIC" if status_color == "red" else "LIVE: FUTU
 st.markdown(f"**Market Status:** :{status_color}[{status_text}] | **Futures Open In:** {countdown}")
 
 m1, m2, m3, m4 = st.columns(4)
-m1.metric("Brent Crude", f"${df['BZ=F'].iloc[-1]:.2f}", "Escalation Risk")
+m1.metric("Brent", f"${df['BZ=F'].iloc[-1]:.2f}", "Escalation Risk")
 m2.metric("Spread", f"${df['Spread'].iloc[-1]:.2f}", "Supply Risk")
 m3.metric("Tail Risk", f"{cvar_val:.2%}", "Expected Loss")
 m4.metric("Gold (GC=F)", f"${df['GC=F'].iloc[-1]:,.2f}", "Safe Haven")
