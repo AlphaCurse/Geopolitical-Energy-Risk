@@ -69,15 +69,12 @@ with st.sidebar:
         st.divider()
 
 st.title("Institutional Geopolitical Risk Dashboard")
-status_color = "red" if now.weekday() >= 5 and now.hour < 18 else "green"
-status_text = "CLOSED: WEEKEND STATIC" if status_color == "red" else "LIVE: FUTURES OPEN"
-st.markdown(f"**Market Status:** :{status_color}[{status_text}] | **Futures Open In:** {countdown}")
 
-m1, m2, m3, m4 = st.columns(4)
-m1.metric("Brent", f"${df['BZ=F'].iloc[-1]:.2f}", "Escalation Risk")
-m2.metric("Spread", f"${df['Spread'].iloc[-1]:.2f}", "Supply Risk")
-m3.metric("Tail Risk", f"{cvar_val:.2%}", "Expected Loss")
-m4.metric("Gold (GC=F)", f"${df['GC=F'].iloc[-1]:,.2f}", "Safe Haven")
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Brent", f"${df['BZ=F'].iloc[-1]:.2f}")
+col2.metric("Spread", f"${df['Spread'].iloc[-1]:.2f}")
+col3.metric("Tail Risk", f"{cvar_val:.2%}")
+col4.metric("Gold (GC=F)", f"${df['GC=F'].iloc[-1]:,.2f}")
 
 current_vol = df['Vol'].iloc[-1]
 mults = {"Conservative": 1.5, "Moderate": 1.0, "Aggressive": 0.5}
