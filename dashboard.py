@@ -95,8 +95,8 @@ st.markdown(f"**Market Status:** :{status_color}[{status_text}] | **Futures Open
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Brent Crude", f"${df['BZ=F'].iloc[-1]:.2f}", "Escalation Risk")
-m2.metric("War Premium (Spread)", f"${df['Spread'].iloc[-1]:.2f}", "Supply Risk")
-m3.metric("Tail Risk (CVaR 95%)", f"{cvar_val:.2%}", "Expected Loss")
+m2.metric("Spread", f"${df['Spread'].iloc[-1]:.2f}", "Supply Risk")
+m3.metric("Tail Risk", f"{cvar_val:.2%}", "Expected Loss")
 m4.metric("Gold (GC=F)", f"${df['GC=F'].iloc[-1]:,.2f}", "Safe Haven")
 
 current_vol = df['Vol'].iloc[-1]
@@ -128,9 +128,6 @@ with col_stats:
 
 st.divider()
 st.subheader("Backtest")
-backtest_results = pd.DataFrame({
-    "Strategy": ["Standard 60/40 Portfolio", "Hedged (15% Gold/Defense)"],
-    "Max Drawdown (April Shock)": ["-8.42%", "-2.15%"],
-    "Risk-Adjusted Alpha": ["-", "+2.4%"]
-})
-st.table(backtest_results)
+
+perf = (df / df.iloc[0] - 1) * 100
+st.line_chart(perf[["BZ=F", "GC=F", "ITA"]])
