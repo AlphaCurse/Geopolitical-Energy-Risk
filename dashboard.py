@@ -56,7 +56,7 @@ with st.sidebar:
     st.divider()
     st.subheader("Real-Time Intel Feed")
     
-news_list = get_live_news("BZ=F")
+    news_list = get_live_news("BZ=F")
     
     for item in news_list:
         content = item.get('content', item)
