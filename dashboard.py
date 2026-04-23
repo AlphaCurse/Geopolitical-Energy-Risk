@@ -9,7 +9,7 @@ import datetime
 import pytz
 from streamlit_autorefresh import st_autorefresh
 
-st.set_page_config(page_title="Institutional Energy Risk", layout="wide")
+st.set_page_config(page_title="Energy Risk Monitor", layout="wide")
 st_autorefresh(interval=1000, key="framer")
 
 @st.cache_data(ttl=3600)
